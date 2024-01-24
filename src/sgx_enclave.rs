@@ -1,4 +1,4 @@
-use crate::utils::{read_data, MockCredential};
+use crate::utils::{base64, read_data, MockCredential};
 use azure_svc_attestation::{
     models::{AttestSgxEnclaveRequest, RuntimeData},
     ClientBuilder,
@@ -17,10 +17,20 @@ pub fn verify() {
     let client = client.attestation_client();
 
     let mut request = AttestSgxEnclaveRequest::new();
-    request.quote = Some(read_data("quotes/sgx_enclave_quote.txt"));
+
+    let quote = read_data("quotes/sgx_enclave_quote.txt");
+    let quote = hex::decode(quote).unwrap();
+    let quote = base64(quote);
+    println!("quote : {:#?}", quote);
+
+    request.quote = Some(quote);
 
     let mut rundata = RuntimeData::new();
     let ehd = read_data("quotes/sgx_enclave_ehd.txt");
+    // let ehd = hex::decode(ehd).unwrap();
+    let ehd = base64(ehd.as_bytes().to_vec());
+    println!("ehd : {:#?}", ehd);
+
     rundata.data = Some(ehd);
     rundata.data_type = Some(azure_svc_attestation::models::DataType::Binary);
 

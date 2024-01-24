@@ -1,5 +1,5 @@
 use azure_core::auth::{AccessToken, TokenCredential};
-use azure_core::date;
+use azure_core::{base64, date};
 use std::fs::File;
 use std::io::Read;
 // use hex;
@@ -34,4 +34,8 @@ pub fn read_data(path: &str) -> String {
     let hex_string = String::from_utf8(buffer).unwrap();
 
     hex_string
+}
+
+pub fn base64(data: Vec<u8>) -> String {
+    base64::encode(&data)
 }
