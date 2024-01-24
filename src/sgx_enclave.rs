@@ -27,8 +27,8 @@ pub fn verify() {
 
     let mut rundata = RuntimeData::new();
     let ehd = read_data("quotes/sgx_enclave_ehd.txt");
-    // let ehd = hex::decode(ehd).unwrap();
-    let ehd = base64(ehd.as_bytes().to_vec());
+    let ehd = hex::decode(ehd).unwrap();
+    let ehd = base64(ehd);
     println!("ehd : {:#?}", ehd);
 
     rundata.data = Some(ehd);
