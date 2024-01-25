@@ -8,7 +8,7 @@ use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Builder;
 
 pub fn verify() {
-    let endpoint = "https://testazureprovider.eus.attest.azure.net";
+    let endpoint = "https://testazureprovider.eus.attest.azure.net/";
 
     let builder =
         ClientBuilder::new(Arc::new(MockCredential)).endpoint(Url::from_str(endpoint).unwrap());
@@ -26,6 +26,7 @@ pub fn verify() {
     request.quote = Some(quote);
 
     let mut rundata = RuntimeData::new();
+
     let ehd = read_data("quotes/sgx_enclave_ehd.txt");
     let ehd = hex::decode(ehd).unwrap();
     let ehd = base64(ehd);
@@ -35,9 +36,6 @@ pub fn verify() {
     rundata.data_type = Some(azure_svc_attestation::models::DataType::Binary);
 
     request.runtime_data = Some(rundata);
-    // request.init_time_data = Some(InitTimeData::new());
-    // request.draft_policy_for_attestation = None;
-    // request.nonce = None;
 
     let request_builder = client.attest_sgx_enclave(request);
 

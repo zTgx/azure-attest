@@ -3,7 +3,6 @@ use azure_core::{base64, date};
 use azure_svc_attestation::models::AttestationResult;
 use std::fs::File;
 use std::io::Read;
-// use hex;
 use time::OffsetDateTime;
 
 #[derive(Debug)]
@@ -14,10 +13,12 @@ pub(crate) struct MockCredential;
 impl TokenCredential for MockCredential {
     async fn get_token(&self, _scopes: &[&str]) -> azure_core::Result<AccessToken> {
         let token = read_data(".token");
-        Ok(AccessToken::new(
-            token.to_owned(),
+        let atoken = AccessToken::new(
+            token,
             OffsetDateTime::now_utc() + date::duration_from_days(14),
-        ))
+        );
+
+        Ok(atoken)
     }
 
     async fn clear_cache(&self) -> azure_core::Result<()> {
