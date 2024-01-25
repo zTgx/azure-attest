@@ -2,10 +2,9 @@ use azure_svc_attestation::models::AttestationResponse;
 use reqwest::blocking::Client;
 use serde_json::Value;
 
-use super::model::AttestationRequest;
 use super::{
 	enclave_info::{EnclaveInfo, ShowTime},
-	model::{DataType, RunTimeData},
+	model::{AttestationRequest, DataType, RuntimeData},
 };
 use crate::{
 	config::Config,
@@ -31,7 +30,7 @@ impl MAA for SgxEnclave {
 		let ehd = hex::decode(ehd).unwrap();
 		let ehd = base64(ehd);
 
-		let runtime_data = RunTimeData::new(ehd, DataType::Binary);
+		let runtime_data = RuntimeData::new(ehd, DataType::Binary);
 		let request_body = AttestationRequest::new(quote, Some(runtime_data));
 
 		let request_builder = Client::new()

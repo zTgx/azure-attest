@@ -59,6 +59,7 @@ dependencies = [
  "azure_core",
  "azure_mgmt_attestation",
  "azure_svc_attestation",
+ "bytes",
  "hex",
  "jwt",
  "reqwest",
@@ -66,6 +67,7 @@ dependencies = [
  "serde_json",
  "time",
  "tokio",
+ "url",
 ]
 
 [[package]]
