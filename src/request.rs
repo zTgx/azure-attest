@@ -1,7 +1,9 @@
+use azure_svc_attestation::models::AttestationResponse;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
-use crate::utils::{base64, read_data};
+use crate::utils::{base64, decode_jwt, read_data};
 
 #[derive(Serialize, Deserialize)]
 enum DataType {
@@ -58,7 +60,21 @@ pub fn azure_attest() {
     let response = request_builder.send();
     match response {
         Ok(res) => {
-            println!("response: {}", res.text().unwrap());
+            let value: Value = res.json().unwrap();
+            let attest_response: AttestationResponse = serde_json::from_value(value).unwrap();
+
+            // println!("Got AttestationResponse from MAA service: {:#?}", attest_response);
+
+            if let Some(token_body) = attest_response.token {
+                println!("Got token body from MAA service: {:#?}", token_body);
+
+                let attest_result = decode_jwt(token_body);
+
+                println!(
+                    "Got AttestationResult from MAA service: {:#?}",
+                    attest_result
+                );
+            }
         }
         Err(_) => {}
     }

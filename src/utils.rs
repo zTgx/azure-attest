@@ -1,5 +1,6 @@
 use azure_core::auth::{AccessToken, TokenCredential};
 use azure_core::{base64, date};
+use azure_svc_attestation::models::AttestationResult;
 use std::fs::File;
 use std::io::Read;
 // use hex;
@@ -38,4 +39,23 @@ pub fn read_data(path: &str) -> String {
 
 pub fn base64(data: Vec<u8>) -> String {
     base64::encode(&data)
+}
+
+pub fn decode_jwt(token: String) -> AttestationResult {
+    // use jwt::Token;
+    // let token: Token<Header, Claims, _> = Token::parse_unverified(&token).unwrap();
+    // println!("Claims: {:#?}", token.claims());
+
+    let decompose_token: Vec<&str> = token.split(".").collect();
+    if decompose_token.len() != 3 {
+        println!("JSON Web Tokens must have 3 components delimited by '.' characters.");
+    }
+
+    // let token_header = base64::decode(decompose_token[0]).unwrap();
+    let token_body = base64::decode(decompose_token[1]).unwrap();
+    // let token_sig = base64::decode(decompose_token[2]).unwrap();
+
+    let attest_result: AttestationResult = serde_json::from_slice(&token_body).unwrap();
+
+    attest_result
 }
