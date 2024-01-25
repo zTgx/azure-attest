@@ -7,7 +7,7 @@ fn main() {
 	let enclave = EnclaveType::OpenEnclave;
 	match enclave {
 		EnclaveType::SgxEnclave => SgxEnclave.azure_attest(),
-		EnclaveType::OpenEnclave => test_enclave::TestEnclave.azure_attest(),
-		// EnclaveType::OpenEnclave => open_enclave::verify(),
+		// EnclaveType::OpenEnclave => test_enclave::TestEnclave.azure_attest(),
+		EnclaveType::OpenEnclave => open_enclave::verify(),
 	}
 }

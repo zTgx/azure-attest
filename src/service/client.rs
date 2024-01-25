@@ -169,7 +169,7 @@ pub mod attestation {
 
 			fn url(&self) -> azure_core::Result<azure_core::Url> {
 				let mut url = azure_core::Url::parse(&format!(
-					"{}/attest/OpenEnclave",
+					"{}attest/OpenEnclave",
 					self.client.endpoint(),
 				))?;
 				let has_api_version_already =

@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::enclaves::model::{AttestOpenEnclaveRequest, AttestSgxEnclaveRequest};
 use crate::service::client::ClientBuilder;
-use crate::utils::read_string_from_file;
+use crate::utils::{base64, read_string_from_file};
 use std::str::FromStr;
 use url::Url;
 
@@ -16,7 +16,8 @@ pub fn verify() {
 	let mut request = AttestOpenEnclaveRequest::new();
 
 	let report = read_string_from_file("quotes/open_enclave_quote.txt");
-	println!("quote len: {}", report.len());
+	let report = hex::decode(report).unwrap();
+	let report = base64(report);
 
 	request.report = Some(report);
 
