@@ -1,3 +1,5 @@
+mod config;
+mod enclave_info;
 mod open_enclave;
 mod request;
 mod sgx_enclave;

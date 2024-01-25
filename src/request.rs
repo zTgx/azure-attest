@@ -3,7 +3,11 @@ use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::utils::{base64, decode_jwt, read_data};
+use crate::{
+    config::Config,
+    enclave_info::{EnclaveInfo, ShowTime},
+    utils::{base64, decode_attest_result, read_string_from_file},
+};
 
 #[derive(Serialize, Deserialize)]
 enum DataType {
@@ -29,17 +33,17 @@ struct AttestationRequest {
 }
 
 pub fn azure_attest() {
-    let endpoint =
-        "https://testazureprovider.eus.attest.azure.net/attest/SgxEnclave?api-version=2020-10-01";
+    let config = Config::default();
+    let endpoint = config.endpoint;
 
-    let subscription_key = read_data(".token");
+    let subscription_key = config.token;
     let bearer_token = format!("Bearer {}", subscription_key);
 
-    let quote = read_data("quotes/sgx_enclave_quote.txt");
+    let quote = read_string_from_file("quotes/sgx_enclave_quote.txt");
     let quote = hex::decode(quote).unwrap();
     let quote = base64(quote);
 
-    let ehd = read_data("quotes/sgx_enclave_ehd.txt");
+    let ehd = read_string_from_file("quotes/sgx_enclave_ehd.txt");
     let ehd = hex::decode(ehd).unwrap();
     let ehd = base64(ehd);
 
@@ -66,14 +70,18 @@ pub fn azure_attest() {
             // println!("Got AttestationResponse from MAA service: {:#?}", attest_response);
 
             if let Some(token_body) = attest_response.token {
-                println!("Got token body from MAA service: {:#?}", token_body);
+                // println!("Got token body from MAA service: {:#?}", token_body);
 
-                let attest_result = decode_jwt(token_body);
+                let attest_result = decode_attest_result(token_body);
 
-                println!(
-                    "Got AttestationResult from MAA service: {:#?}",
-                    attest_result
-                );
+                // println!(
+                //     "Got AttestationResult from MAA service: {:#?}",
+                //     attest_result
+                // );
+
+                let enclave_info =
+                    EnclaveInfo::create_from_file("quotes/enclave.info.securityversion.json");
+                enclave_info.show_attest(&attest_result, true);
             }
         }
         Err(_) => {}

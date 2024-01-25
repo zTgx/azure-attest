@@ -5,6 +5,8 @@ use std::fs::File;
 use std::io::Read;
 use time::OffsetDateTime;
 
+use crate::config::Config;
+
 #[derive(Debug)]
 pub(crate) struct MockCredential;
 
@@ -12,7 +14,7 @@ pub(crate) struct MockCredential;
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 impl TokenCredential for MockCredential {
     async fn get_token(&self, _scopes: &[&str]) -> azure_core::Result<AccessToken> {
-        let token = read_data(".token");
+        let token = Config::default().token;
         let atoken = AccessToken::new(
             token,
             OffsetDateTime::now_utc() + date::duration_from_days(14),
@@ -26,7 +28,7 @@ impl TokenCredential for MockCredential {
     }
 }
 
-pub fn read_data(path: &str) -> String {
+pub fn read_string_from_file(path: &str) -> String {
     let mut file = File::open(path).expect("Failed to open file");
 
     let mut buffer = Vec::new();
@@ -42,10 +44,10 @@ pub fn base64(data: Vec<u8>) -> String {
     base64::encode(&data)
 }
 
-pub fn decode_jwt(token: String) -> AttestationResult {
+pub fn decode_attest_result(token: String) -> AttestationResult {
     // use jwt::Token;
     // let token: Token<Header, Claims, _> = Token::parse_unverified(&token).unwrap();
-    // println!("Claims: {:#?}", token.claims());
+    // println!(("Claims: {:#?}", token.claims());
 
     let decompose_token: Vec<&str> = token.split(".").collect();
     if decompose_token.len() != 3 {

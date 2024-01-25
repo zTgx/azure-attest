@@ -3,7 +3,7 @@ AttestationResult {
         "c152459f46ad10675ce49674d170a0e5e5cad4483f9570edaba07f4dadf3ac99",
     ),
     iss: Some(
-        "https://testazureprovider.eus.attest.azure.net",
+        "https://samplecode.com",
     ),
     iat: Some(
         1706170236.0,

@@ -1,4 +1,7 @@
-use crate::utils::{base64, read_data, MockCredential};
+use crate::{
+    config::Config,
+    utils::{base64, read_string_from_file, MockCredential},
+};
 use azure_svc_attestation::{
     models::{AttestSgxEnclaveRequest, RuntimeData},
     ClientBuilder,
@@ -8,17 +11,16 @@ use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Builder;
 
 pub fn verify() {
-    let endpoint = "https://testazureprovider.eus.attest.azure.net/";
-
+    let endpoint = Config::default().endpoint;
     let builder =
-        ClientBuilder::new(Arc::new(MockCredential)).endpoint(Url::from_str(endpoint).unwrap());
+        ClientBuilder::new(Arc::new(MockCredential)).endpoint(Url::from_str(&endpoint).unwrap());
 
     let client = builder.build().unwrap();
     let client = client.attestation_client();
 
     let mut request = AttestSgxEnclaveRequest::new();
 
-    let quote = read_data("quotes/sgx_enclave_quote.txt");
+    let quote = read_string_from_file("quotes/sgx_enclave_quote.txt");
     let quote = hex::decode(quote).unwrap();
     let quote = base64(quote);
     println!("quote : {:#?}", quote);
@@ -27,7 +29,7 @@ pub fn verify() {
 
     let mut rundata = RuntimeData::new();
 
-    let ehd = read_data("quotes/sgx_enclave_ehd.txt");
+    let ehd = read_string_from_file("quotes/sgx_enclave_ehd.txt");
     let ehd = hex::decode(ehd).unwrap();
     let ehd = base64(ehd);
     println!("ehd : {:#?}", ehd);
