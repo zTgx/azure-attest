@@ -15,3 +15,7 @@ async-trait = "0.1"
 "azure_svc_attestation" = "0.19.0"
 tokio = { version = "1", features = ["full"] }
 jwt = "0.16.0"
+
+[[bin]]
+name = "azure-attest"
+path = "bin/main.rs"
