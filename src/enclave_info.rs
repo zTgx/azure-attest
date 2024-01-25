@@ -52,23 +52,41 @@ impl ShowTime for EnclaveInfo {
             println!("    MAA service: {}", attest_result.is_debuggable.unwrap());
         }
 
-        let mrepassed = self.mrenclave_hex == attest_result.sgx_mrenclave.clone().unwrap();
+        let mrepassed = self.mrenclave_hex
+            == attest_result
+                .sgx_mrenclave
+                .clone()
+                .unwrap()
+                .to_ascii_uppercase();
         println!("MRENCLAVE match                    : {mrepassed}");
         if include_details {
             println!("    We think   : {}", self.mrenclave_hex);
             println!(
                 "    MAA service: {}",
-                attest_result.sgx_mrenclave.clone().unwrap()
+                attest_result
+                    .sgx_mrenclave
+                    .clone()
+                    .unwrap()
+                    .to_ascii_uppercase()
             );
         }
 
-        let mrspassed = self.mrsigner_hex == attest_result.sgx_mrsigner.clone().unwrap();
+        let mrspassed = self.mrsigner_hex
+            == attest_result
+                .sgx_mrsigner
+                .clone()
+                .unwrap()
+                .to_ascii_uppercase();
         println!("MRSIGNER match                     : {mrspassed}");
         if include_details {
             println!("    We think   : {}", self.mrsigner_hex);
             println!(
                 "    MAA service: {}",
-                attest_result.sgx_mrsigner.clone().unwrap()
+                attest_result
+                    .sgx_mrsigner
+                    .clone()
+                    .unwrap()
+                    .to_ascii_uppercase()
             );
         }
 
