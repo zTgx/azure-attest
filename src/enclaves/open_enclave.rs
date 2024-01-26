@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::enclaves::model::{AttestOpenEnclaveRequest, AttestSgxEnclaveRequest};
+use crate::enclaves::model::AttestOpenEnclaveRequest;
 use crate::service::client::ClientBuilder;
 use crate::utils::{base64, read_string_from_file};
 use std::str::FromStr;

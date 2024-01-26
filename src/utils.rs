@@ -43,10 +43,6 @@ pub fn base64(data: Vec<u8>) -> String {
 }
 
 pub fn decode_attest_result(token: String) -> AttestationResult {
-	// use jwt::Token;
-	// let token: Token<Header, Claims, _> = Token::parse_unverified(&token).unwrap();
-	// println!(("Claims: {:#?}", token.claims());
-
 	let decompose_token: Vec<&str> = token.split(".").collect();
 	if decompose_token.len() != 3 {
 		println!("JSON Web Tokens must have 3 components delimited by '.' characters.");

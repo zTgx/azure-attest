@@ -7,6 +7,7 @@ pub mod enclaves;
 pub enum EnclaveType {
 	SgxEnclave,
 	OpenEnclave,
+	TestEnclave,
 }
 
 pub trait MAA {

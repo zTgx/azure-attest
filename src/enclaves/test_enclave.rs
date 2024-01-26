@@ -1,18 +1,18 @@
 use std::str::FromStr;
 
 use azure_svc_attestation::models::AttestationResponse;
-use reqwest::blocking::Client;
+use jwt::{Claims, Header, Token};
 use serde_json::Value;
 use url::Url;
 
 use super::{
 	enclave_info::{EnclaveInfo, ShowTime},
-	model::{AttestSgxEnclaveRequest, AttestationRequest, DataType, RuntimeData},
+	model::AttestSgxEnclaveRequest,
 };
 use crate::{
 	config::Config,
 	service::client::ClientBuilder,
-	utils::{base64, decode_attest_result, read_string_from_file},
+	utils::{base64, read_string_from_file},
 	MAA,
 };
 
@@ -36,27 +36,22 @@ impl MAA for TestEnclave {
 		let request_builder = client.attest_sgx_enclave(request);
 		match request_builder.send() {
 			Ok(res) => {
-				println!("Got AttestationResponse from MAA service: {:#?}", res);
+				let value: Value = res.json().unwrap();
+				let attest_response: AttestationResponse = serde_json::from_value(value).unwrap();
 
-				// let value: Value = res.json().unwrap();
-				// let attest_response: AttestationResponse = serde_json::from_value(value).unwrap();
+				if let Some(token_body) = attest_response.token {
+					let token: Token<Header, Claims, _> =
+						Token::parse_unverified(&token_body).unwrap();
+					let policy = token.claims().private.get("x-ms-policy").unwrap();
+					println!("Got Policy from MAA service: {:#?}", policy);
 
-				// // println!("Got AttestationResponse from MAA service: {:#?}", attest_response);
+					let attest_result =
+						serde_json::from_str(&serde_json::to_string(policy).unwrap()).unwrap();
 
-				// if let Some(token_body) = attest_response.token {
-				// 	// println!("Got token body from MAA service: {:#?}", token_body);
-
-				// 	let attest_result = decode_attest_result(token_body);
-
-				// 	// println!(
-				// 	//     "Got AttestationResult from MAA service: {:#?}",
-				// 	//     attest_result
-				// 	// );
-
-				// 	let enclave_info =
-				// 		EnclaveInfo::create_from_file("quotes/enclave.info.securityversion.json");
-				// 	enclave_info.show_attest(&attest_result, true);
-				// }
+					let enclave_info =
+						EnclaveInfo::create_from_file("quotes/enclave.info.securityversion.json");
+					enclave_info.show_attest(&attest_result, true);
+				}
 			},
 			Err(_) => {},
 		}
