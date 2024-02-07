@@ -1,4 +1,5 @@
 pub mod client;
+pub mod maa;
 pub mod pipeline;
 
 use bytes::Bytes;
