@@ -1,7 +1,9 @@
-use crate::config::Config;
-use crate::enclaves::model::AttestOpenEnclaveRequest;
-use crate::service::client::ClientBuilder;
-use crate::utils::{base64, read_string_from_file};
+use crate::{
+	config::Config,
+	enclaves::model::AttestOpenEnclaveRequest,
+	service::client::ClientBuilder,
+	utils::{base64, read_string_from_file},
+};
 use std::str::FromStr;
 use url::Url;
 

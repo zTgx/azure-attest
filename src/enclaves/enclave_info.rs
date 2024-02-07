@@ -1,7 +1,7 @@
-use azure_svc_attestation::models::AttestationResult;
+// use azure_svc_attestation::models::AttestationResult;
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{base64, read_string_from_file};
+use crate::utils::{base64, read_string_from_file, AttestationResult};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EnclaveInfo {
@@ -45,32 +45,32 @@ pub trait ShowTime {
 impl ShowTime for EnclaveInfo {
 	fn show_attest(&self, attest_result: &AttestationResult, include_details: bool) {
 		let is_debuggable = (self.attributes & 2) != 0; // In SGX, DEBUG flag is equal to 0x0000000000000002ULL
-		let isdpassed = is_debuggable == attest_result.is_debuggable.unwrap();
+		let isdpassed = is_debuggable == attest_result.x_ms_policy.is_debuggable;
 		println!("IsDebuggable match                 : {isdpassed}");
 		if include_details {
 			println!("    We think   : {is_debuggable}");
-			println!("    MAA service: {}", attest_result.is_debuggable.unwrap());
+			println!("    MAA service: {}", attest_result.x_ms_policy.is_debuggable);
 		}
 
-		let mrepassed =
-			self.mrenclave_hex == attest_result.sgx_mrenclave.clone().unwrap().to_ascii_uppercase();
+		let mrepassed = self.mrenclave_hex ==
+			attest_result.x_ms_policy.sgx_mrenclave.clone().to_ascii_uppercase();
 		println!("MRENCLAVE match                    : {mrepassed}");
 		if include_details {
 			println!("    We think   : {}", self.mrenclave_hex);
 			println!(
 				"    MAA service: {}",
-				attest_result.sgx_mrenclave.clone().unwrap().to_ascii_uppercase()
+				attest_result.x_ms_policy.sgx_mrenclave.clone().to_ascii_uppercase()
 			);
 		}
 
-		let mrspassed =
-			self.mrsigner_hex == attest_result.sgx_mrsigner.clone().unwrap().to_ascii_uppercase();
+		let mrspassed = self.mrsigner_hex ==
+			attest_result.x_ms_policy.sgx_mrsigner.clone().to_ascii_uppercase();
 		println!("MRSIGNER match                     : {mrspassed}");
 		if include_details {
 			println!("    We think   : {}", self.mrsigner_hex);
 			println!(
 				"    MAA service: {}",
-				attest_result.sgx_mrsigner.clone().unwrap().to_ascii_uppercase()
+				attest_result.x_ms_policy.sgx_mrsigner.clone().to_ascii_uppercase()
 			);
 		}
 
@@ -83,11 +83,11 @@ impl ShowTime for EnclaveInfo {
 		//     println!("    MAA service: {}", attest_result.product_id.unwrap());
 		// }
 
-		let svn_passed = self.security_version == attest_result.svn.unwrap();
+		let svn_passed = self.security_version == attest_result.x_ms_policy.svn as f64;
 		println!("Security Version match             : {svn_passed}");
 		if include_details {
 			println!("    We think   : {}", self.security_version);
-			println!("    MAA service: {}", attest_result.svn.unwrap().to_string());
+			println!("    MAA service: {}", attest_result.x_ms_policy.svn.to_string());
 		}
 
 		let ehd_expected = hex::decode(&self.enclave_held_data_hex).unwrap();

@@ -1,11 +1,23 @@
-use azure_core::auth::{AccessToken, TokenCredential};
-use azure_core::{base64, date};
-use azure_svc_attestation::models::AttestationResult;
-use std::fs::File;
-use std::io::Read;
+use azure_core::{
+	auth::{AccessToken, TokenCredential},
+	base64, date,
+};
+use serde::{Deserialize, Serialize};
+// use azure_svc_attestation::models::AttestationResult;
+use std::{fs::File, io::Read};
 use time::OffsetDateTime;
 
-use crate::config::Config;
+use crate::{config::Config, service::maa::MAAPolicy};
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct AttestationResult {
+	#[serde(rename = "x-ms-policy")]
+	#[serde(flatten)]
+	pub x_ms_policy: MAAPolicy,
+
+	#[serde(rename = "x-ms-sgx-ehd", default, skip_serializing_if = "Option::is_none")]
+	pub x_ms_sgx_ehd: Option<String>,
+}
 
 #[derive(Debug)]
 pub(crate) struct MockCredential;
@@ -47,6 +59,7 @@ pub fn decode_attest_result(token: String) -> AttestationResult {
 	if decompose_token.len() != 3 {
 		println!("JSON Web Tokens must have 3 components delimited by '.' characters.");
 	}
+	println!("decompose token 2: {}", decompose_token[1]);
 
 	// let token_header = base64::decode(decompose_token[0]).unwrap();
 	let token_body = base64::decode(decompose_token[1]).unwrap();

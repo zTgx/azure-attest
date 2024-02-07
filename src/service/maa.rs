@@ -1,15 +1,19 @@
-use crate::config::Config;
-use crate::utils::{base64, decode_attest_result};
-use http_req::uri::Uri;
+use crate::{
+	config::Config,
+	utils::{base64, decode_attest_result},
+};
 use http_req::{
 	request::{Method, RequestBuilder},
 	tls,
+	uri::Uri,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::net::TcpStream;
-use std::string::{String, ToString};
-use std::vec::Vec;
+use std::{
+	net::TcpStream,
+	string::{String, ToString},
+	vec::Vec,
+};
 
 type EnclaveResult<T> = Result<T, String>;
 
@@ -57,10 +61,11 @@ pub trait MAAHandler {
 
 pub struct MAAService;
 impl MAAService {
-	pub fn parse_maa_policy(res: &MAAResponse) -> EnclaveResult<MAAPolicy> {
+	pub fn parse_maa_policy(writer: &[u8]) -> EnclaveResult<MAAPolicy> {
+		let res: MAAResponse = serde_json::from_slice(&writer).unwrap();
+
 		let attest_result = decode_attest_result(res.token.to_string());
 		let policy = attest_result.x_ms_policy;
-		let policy: MAAPolicy = serde_json::from_value(policy.unwrap()).unwrap();
 		Ok(policy)
 	}
 }
@@ -97,8 +102,10 @@ impl MAAHandler for MAAService {
 		println!(">>> response status code: {}", status_code);
 		println!(">>> response reason: {}", reason);
 
-		let res: MAAResponse = serde_json::from_slice(&writer).unwrap();
-		Self::parse_maa_policy(&res)
+		let resp_string = String::from_utf8_lossy(&writer);
+		println!("{}", resp_string);
+
+		Self::parse_maa_policy(&writer)
 	}
 }
 
@@ -114,5 +121,12 @@ pub mod tests {
 		let s = MAAService;
 		let ret = s.azure_attest(&quote);
 		println!("ret: {:?}", ret);
+	}
+
+	#[test]
+	fn xxx_works() {
+		pub const MAA_RES_SAMPLE: &[u8] = include_bytes!("./maa_response_sample");
+		let ret = MAAService::parse_maa_policy(&MAA_RES_SAMPLE);
+		assert!(ret.is_ok());
 	}
 }
