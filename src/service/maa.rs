@@ -1,7 +1,6 @@
-use crate::{
-	config::Config,
-	utils::{base64, decode_attest_result},
-};
+use crate::{config::Config, utils::base64};
+use azure_core::base64;
+use codec::{Decode, Encode};
 use http_req::{
 	request::{Method, RequestBuilder},
 	tls,
@@ -35,7 +34,7 @@ pub struct MAAPolicy {
 	pub tee: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Decode, Encode)]
 pub struct MAAResponse {
 	pub token: String,
 }
@@ -56,22 +55,28 @@ impl Default for MAAPolicy {
 //  Trait to do Microsoft Azure Attestation
 pub trait MAAHandler {
 	//  Verify DCAP quote from MAA
-	fn azure_attest(&self, quote: &[u8]) -> EnclaveResult<MAAPolicy>;
+	fn azure_attest(&self, quote: &[u8]) -> EnclaveResult<Vec<u8>>;
 }
 
 pub struct MAAService;
 impl MAAService {
-	pub fn parse_maa_policy(writer: &[u8]) -> EnclaveResult<MAAPolicy> {
+	pub fn parse_maa_policy(writer: &[u8]) -> EnclaveResult<Vec<u8>> {
 		let res: MAAResponse = serde_json::from_slice(&writer).unwrap();
+		println!("res: {:?}", res);
 
-		let attest_result = decode_attest_result(res.token.to_string());
-		let policy = attest_result.x_ms_policy;
+		let decompose_token: Vec<&str> = res.token.split(".").collect();
+		if decompose_token.len() != 3 {
+			println!("JSON Web Tokens must have 3 components delimited by '.' characters.");
+		}
+
+		let policy = base64::decode(decompose_token[1]).unwrap();
+
 		Ok(policy)
 	}
 }
 
 impl MAAHandler for MAAService {
-	fn azure_attest(&self, quote: &[u8]) -> EnclaveResult<MAAPolicy> {
+	fn azure_attest(&self, quote: &[u8]) -> EnclaveResult<Vec<u8>> {
 		println!("    [Enclave] Entering azure_attest.");
 
 		let quote = base64(quote.to_vec());
@@ -103,7 +108,7 @@ impl MAAHandler for MAAService {
 		println!(">>> response reason: {}", reason);
 
 		let resp_string = String::from_utf8_lossy(&writer);
-		println!("{}", resp_string);
+		println!("resp_string: {}", resp_string);
 
 		Self::parse_maa_policy(&writer)
 	}
@@ -111,6 +116,8 @@ impl MAAHandler for MAAService {
 
 #[cfg(test)]
 pub mod tests {
+	use azure_core::base64;
+
 	use super::*;
 
 	#[test]
@@ -128,5 +135,11 @@ pub mod tests {
 		pub const MAA_RES_SAMPLE: &[u8] = include_bytes!("./maa_response_sample");
 		let ret = MAAService::parse_maa_policy(&MAA_RES_SAMPLE);
 		assert!(ret.is_ok());
+
+		let v = base64(ret.clone().unwrap());
+		println!("Policy: {}", v);
+		let x = base64::decode(v).unwrap();
+		let v: MAAPolicy = serde_json::from_slice(&x).unwrap();
+		println!("Policy: {:?}", v);
 	}
 }
